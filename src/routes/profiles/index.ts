@@ -54,6 +54,18 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         return reply.badRequest()
       }
 
+      const profile = await this.db.profiles.findOne({
+        key: "userId", equals: request.body.userId
+      })
+
+      const memeberType = await this.db.memberTypes.findOne({
+        key: "id", equals: request.body.memberTypeId
+      })
+
+      if (profile || !memeberType) {
+        return reply.badRequest()
+      }
+
       return await this.db.profiles.create({
         ...request.body
       })
@@ -81,7 +93,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         })
 
       if (!profile) {
-        return reply.notFound()
+        return reply.badRequest()
       }
 
       return await this.db.profiles.delete(request.params.id)
@@ -112,7 +124,19 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         })
 
       if (!profile) {
-        return reply.notFound()
+        return reply.badRequest()
+      }
+
+      if (request.body.memberTypeId) {
+        const memberType =
+          await this.db.memberTypes.findOne({
+            key: "id",
+            equals: request.body.memberTypeId
+          })
+
+        if (!memberType) {
+          return reply.badRequest()
+        }
       }
 
       return await this.db.profiles.change(request.params.id, request.body)

@@ -84,7 +84,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         })
 
       if (!user) {
-        return reply.notFound()
+        return reply.badRequest()
       }
 
       const userProfile =
@@ -142,18 +142,29 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       }
 
       const user = await this.db.users
-        .findOne({ key: "id", equals: request.params.id })
-
-      const subscribedToUser = await this.db.users
         .findOne({ key: "id", equals: request.body.userId })
 
-      if (!user || !subscribedToUser) {
+      const subscribeToUser = await this.db.users
+        .findOne({ key: "id", equals: request.params.id })
+
+      if (!user || !subscribeToUser) {
         return reply.notFound()
       }
 
-      user.subscribedToUserIds.push(request.body.userId)
+      const isAlreadySubscribed =
+        user.subscribedToUserIds.includes(request.params.id);
 
-      return await this.db.users.change(request.params.id, user)
+      if (isAlreadySubscribed || request.body.userId === request.params.id) {
+        return reply.badRequest()
+      }
+
+      user.subscribedToUserIds.push(request.params.id)
+      const subscribedToUserIds = [...user.subscribedToUserIds]
+
+      return await this.db.users.change(
+        request.body.userId,
+        { subscribedToUserIds }
+        )
     }
   );
 
@@ -176,28 +187,29 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       }
 
       const user = await this.db.users
-        .findOne({ key: "id", equals: request.params.id })
-
-      const unSubscribedToUser = await this.db.users
         .findOne({ key: "id", equals: request.body.userId })
 
-      if (!user || !unSubscribedToUser) {
+      const unSubscribeToUser = await this.db.users
+        .findOne({ key: "id", equals: request.params.id })
+
+      if (!user || !unSubscribeToUser) {
         return reply.notFound()
       }
 
       const isSubscribed =
-        user.subscribedToUserIds.some((userID) => userID === request.body.userId )
+        user.subscribedToUserIds.includes(request.params.id)
 
-      if (!isSubscribed) {
+      if (!isSubscribed || request.body.userId === request.params.id) {
         return reply.badRequest()
       }
 
       const subscribedToUserIds =
-        user.subscribedToUserIds.filter((userID) => userID !== request.body.userId)
+        [...user.subscribedToUserIds].filter((userID) => userID !== request.params.id)
 
-      user.subscribedToUserIds = [...subscribedToUserIds]
-
-      return await this.db.users.change(request.params.id, user)
+      return await this.db.users.change(
+        request.body.userId,
+        { subscribedToUserIds }
+        )
     }
   );
 
@@ -223,7 +235,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         .findOne({ key: "id", equals: request.params.id })
 
       if (!user) {
-         return reply.notFound()
+         return reply.badRequest()
       }
 
       return await this.db.users.change(request.params.id, {...request.body})

@@ -58,7 +58,23 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<PostEntity> {
+    async function (request, reply): Promise<PostEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidParams) {
+        return reply.badRequest()
+      }
+
+      const post =
+        await this.db.posts.findOne({
+          key: "id", equals: request.params.id
+        })
+
+      if (!post) {
+        return reply.badRequest()
+      }
+
       return await this.db.posts.delete(request.params.id)
     }
   );
@@ -71,7 +87,25 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<PostEntity> {
+    async function (request, reply): Promise<PostEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const bodyValidationFunction = request.getValidationFunction('body')
+      const isValidBody = bodyValidationFunction(request.body)
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidBody || !isValidParams) {
+        return reply.badRequest()
+      }
+
+      const post =
+        await this.db.posts.findOne({
+          key: "id", equals: request.params.id
+        })
+
+      if (!post) {
+        return reply.badRequest()
+      }
+
       return await this.db.posts.change(request.params.id, request.body)
     }
   );

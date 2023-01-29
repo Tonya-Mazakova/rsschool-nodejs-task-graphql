@@ -32,7 +32,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       })
 
       if (!memberType) {
-         throw this.httpErrors.notFound()
+         return reply.notFound()
       }
 
       return memberType
@@ -47,7 +47,24 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<MemberTypeEntity> {
+    async function (request, reply): Promise<MemberTypeEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const bodyValidationFunction = request.getValidationFunction('body')
+      const isValidBody = bodyValidationFunction(request.body)
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidParams || !isValidBody) {
+        return reply.badRequest()
+      }
+
+      const memberType = await this.db.memberTypes.findOne({
+        key: "id", equals: request.params.id
+      })
+
+      if (!memberType) {
+        return reply.badRequest()
+      }
+
       return await this.db.memberTypes.change(request.params.id, request.body)
     }
   );
