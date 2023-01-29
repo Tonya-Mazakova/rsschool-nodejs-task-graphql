@@ -8,7 +8,9 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 ): Promise<void> => {
   fastify.get('/', async function (request, reply): Promise<
     ProfileEntity[]
-  > {});
+  > {
+    return this.db.profiles.findMany()
+  });
 
   fastify.get(
     '/:id',
@@ -17,7 +19,24 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<ProfileEntity> {}
+    async function (request, reply): Promise<ProfileEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidParams) {
+        return reply.badRequest()
+      }
+
+      const profile = await this.db.profiles.findOne({
+        key: "id", equals: request.params.id
+      })
+
+      if (!profile) {
+        return reply.notFound()
+      }
+
+      return profile
+    }
   );
 
   fastify.post(
@@ -27,7 +46,18 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         body: createProfileBodySchema,
       },
     },
-    async function (request, reply): Promise<ProfileEntity> {}
+    async function (request, reply): Promise<ProfileEntity | void> {
+      const bodyValidationFunction = request.getValidationFunction('body')
+      const isValidBody = bodyValidationFunction(request.body)
+
+      if (!isValidBody) {
+        return reply.badRequest()
+      }
+
+      return await this.db.profiles.create({
+        ...request.body
+      })
+    }
   );
 
   fastify.delete(
@@ -37,7 +67,25 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<ProfileEntity> {}
+    async function (request, reply): Promise<ProfileEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidParams) {
+        return reply.badRequest()
+      }
+
+      const profile =
+        await this.db.profiles.findOne({
+          key: "id", equals: request.params.id
+        })
+
+      if (!profile) {
+        return reply.notFound()
+      }
+
+      return await this.db.profiles.delete(request.params.id)
+    }
   );
 
   fastify.patch(
@@ -48,7 +96,27 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<ProfileEntity> {}
+    async function (request, reply): Promise<ProfileEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const bodyValidationFunction = request.getValidationFunction('body')
+      const isValidBody = bodyValidationFunction(request.body)
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidBody || !isValidParams) {
+        return reply.badRequest()
+      }
+
+      const profile =
+        await this.db.profiles.findOne({
+          key: "id", equals: request.params.id
+        })
+
+      if (!profile) {
+        return reply.notFound()
+      }
+
+      return await this.db.profiles.change(request.params.id, request.body)
+    }
   );
 };
 

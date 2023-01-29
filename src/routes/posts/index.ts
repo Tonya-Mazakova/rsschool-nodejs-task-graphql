@@ -6,7 +6,9 @@ import type { PostEntity } from '../../utils/DB/entities/DBPosts';
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
 ): Promise<void> => {
-  fastify.get('/', async function (request, reply): Promise<PostEntity[]> {});
+  fastify.get('/', async function (request, reply): Promise<PostEntity[]> {
+    return this.db.posts.findMany()
+  });
 
   fastify.get(
     '/:id',
@@ -15,7 +17,24 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<PostEntity> {}
+    async function (request, reply): Promise<PostEntity | void> {
+      const paramsValidationFunction = request.getValidationFunction('params')
+      const isValidParams = paramsValidationFunction(request.params)
+
+      if (!isValidParams) {
+        return reply.badRequest()
+      }
+
+      const post = await this.db.posts.findOne({
+        key: "id", equals: request.params.id
+      })
+
+      if (!post) {
+        return reply.notFound()
+      }
+
+      return post
+    }
   );
 
   fastify.post(
@@ -25,7 +44,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         body: createPostBodySchema,
       },
     },
-    async function (request, reply): Promise<PostEntity> {}
+    async function (request, reply): Promise<PostEntity> {
+      return await this.db.posts.create({
+        ...request.body
+      })
+    }
   );
 
   fastify.delete(
@@ -35,7 +58,9 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<PostEntity> {}
+    async function (request, reply): Promise<PostEntity> {
+      return await this.db.posts.delete(request.params.id)
+    }
   );
 
   fastify.patch(
@@ -46,7 +71,9 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request, reply): Promise<PostEntity> {}
+    async function (request, reply): Promise<PostEntity> {
+      return await this.db.posts.change(request.params.id, request.body)
+    }
   );
 };
 
