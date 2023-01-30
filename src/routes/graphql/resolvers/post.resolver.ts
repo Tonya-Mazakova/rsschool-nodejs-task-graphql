@@ -1,6 +1,5 @@
 import { FastifyInstance } from "fastify";
 import * as DataLoader from "dataloader";
-import { PostEntity } from "../../../utils/DB/entities/DBPosts";
 
 class PostResolver {
   public async fetchPosts(fastify: FastifyInstance) {
@@ -48,18 +47,7 @@ class PostResolver {
     return new DataLoader(async (userIDs) => {
       const posts = await fastify.db.posts.findMany()
 
-      let found
-      const result = userIDs.reduce((acc: any, currentUserID) => {
-        found = posts?.find((post) => post.userId === currentUserID)
-
-        if (found) {
-          acc.push(found)
-        }
-
-        return acc
-      }, [])
-
-      return result as PostEntity[]
+      return userIDs?.map((userID) => posts?.find((post) => post?.userId === userID));
     })
   }
 }

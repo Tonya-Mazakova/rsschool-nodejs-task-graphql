@@ -6,7 +6,7 @@ import {
 } from "graphql";
 import { getQueryType } from "./queryType";
 import { getMutationType } from "./mutationType";
-import { profileResolver, postResolver, memberTypeResolver } from "./resolvers";
+import { profileResolver, postResolver, memberTypeResolver, usersResolver } from "./resolvers";
 
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
@@ -22,6 +22,8 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       const profileDataLoader = await profileResolver.getProfileDataLoader(fastify);
       const postDataLoader = await postResolver.getPostDataLoader(fastify);
       const memberTypeDataLoader = await memberTypeResolver.getMemberTypeDataLoader(fastify);
+      const userSubscribedToDataLoader = await usersResolver.getUserSubscribedToDataLoader(fastify);
+      const subscribedToUserDataLoader = await usersResolver.getSubscribedToUserDataLoader(fastify);
 
       const schema = new GraphQLSchema({
         query: getQueryType(fastify),
@@ -36,7 +38,9 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
           fastify,
           profileDataLoader,
           postDataLoader,
-          memberTypeDataLoader
+          memberTypeDataLoader,
+          userSubscribedToDataLoader,
+          subscribedToUserDataLoader
         }
       });
     }

@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { MemberTypeEntity } from "../../../utils/DB/entities/DBMemberTypes";
 import * as DataLoader from "dataloader";
 
 class MemberTypeResolver {
@@ -41,18 +40,8 @@ class MemberTypeResolver {
     return new DataLoader(async (memberTypeIDs) => {
       const memberTypes = await fastify.db.memberTypes.findMany()
 
-      let found
-      const result = memberTypeIDs.reduce((acc: any, currentUserID) => {
-        found = memberTypes?.find((memberType) => memberType.id === currentUserID)
-
-        if (found) {
-          acc.push(found)
-        }
-
-        return acc
-      }, [])
-
-      return result as MemberTypeEntity[]
+      return memberTypeIDs?.map((memberTypeID) =>
+        memberTypes?.find((memberType) => memberType?.id === memberTypeID));
     })
   }
 }

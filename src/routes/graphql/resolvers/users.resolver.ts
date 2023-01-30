@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import * as DataLoader from "dataloader";
 
 class UsersResolver {
   public async fetchUsers(fastify: FastifyInstance) {
@@ -104,6 +105,23 @@ class UsersResolver {
       userId,
       { subscribedToUserIds }
     )
+  }
+
+  public async getUserSubscribedToDataLoader(fastify: FastifyInstance) {
+    return new DataLoader(async (userIDs) => {
+      const users = await fastify.db.users.findMany();
+
+      return userIDs?.map((userId) =>
+        users?.find((user) => user.subscribedToUserIds?.includes(userId as string)));
+    })
+  }
+
+  public async getSubscribedToUserDataLoader(fastify: FastifyInstance) {
+    return new DataLoader(async (userIDs) => {
+      const users = await fastify.db.users.findMany();
+
+      return userIDs?.map((userID) => users?.find((user) => user?.id === userID));
+    })
   }
 }
 

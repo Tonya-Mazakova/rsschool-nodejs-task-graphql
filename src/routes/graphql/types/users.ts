@@ -8,7 +8,7 @@ import {
 import { UserEntity } from '../../../utils/DB/entities/DBUsers';
 import { profileType, postType, memberType } from "./";
 
-const userType = new GraphQLObjectType({
+const userType: any = new GraphQLObjectType({
   name: "User",
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLString) },
@@ -30,11 +30,20 @@ const userType = new GraphQLObjectType({
         const profile = await context.profileDataLoader.load(user.id);
 
         if (!profile) {
-          return
+          return [];
         }
 
         return context.memberTypeDataLoader.load(profile.memberTypeId);
       },
+    },
+    subscribedToUser: {
+      type: new GraphQLList(userType),
+      resolve: async (user: UserEntity, args: [], context) =>
+        context.subscribedToUserDataLoader.loadMany(user.subscribedToUserIds),
+    },
+    userSubscribedTo: {
+      type: new GraphQLList(userType),
+      resolve: async (user: UserEntity, args: [], context) => context.userSubscribedToDataLoader.load(user.id),
     },
   }),
 })
