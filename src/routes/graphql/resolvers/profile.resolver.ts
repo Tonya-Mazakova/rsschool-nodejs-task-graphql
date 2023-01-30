@@ -5,9 +5,9 @@ class ProfileResolver {
     return await fastify.db.profiles.findMany();
   }
 
-  public async fetchProfile(fastify: FastifyInstance, id: string) {
+  public async fetchProfile(fastify: FastifyInstance, args: { id: string }) {
     const profile = await fastify.db.profiles.findOne({
-      key: "id", equals: id
+      key: "id", equals: args?.id
     })
 
     if (!profile) {
@@ -15,6 +15,19 @@ class ProfileResolver {
     }
 
     return profile
+  }
+
+  public async createProfile(fastify: FastifyInstance, args: {
+    avatar: string,
+    sex: string,
+    birthday: number,
+    country: string,
+    street: string,
+    city: string,
+    userId: string,
+    memberTypeId: string
+  }) {
+   return await fastify.db.profiles.create(args)
   }
 }
 

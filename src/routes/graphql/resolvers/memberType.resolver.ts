@@ -5,9 +5,9 @@ class MemberTypeResolver {
     return await fastify.db.memberTypes.findMany();
   }
 
-  public async fetchMemberType(fastify: FastifyInstance, id: string) {
+  public async fetchMemberType(fastify: FastifyInstance, args: { id: string }) {
     const memberType = await fastify.db.memberTypes.findOne({
-      key: "id", equals: id
+      key: "id", equals: args?.id
     })
 
     if (!memberType) {

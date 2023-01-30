@@ -5,9 +5,9 @@ class PostResolver {
     return await fastify.db.posts.findMany();
   }
 
-  public async fetchPost(fastify: FastifyInstance, id: string) {
+  public async fetchPost(fastify: FastifyInstance, args: { id: string }) {
     const post = await fastify.db.posts.findOne({
-      key: "id", equals: id
+      key: "id", equals: args?.id
     })
 
     if (!post) {
@@ -15,6 +15,14 @@ class PostResolver {
     }
 
     return post
+  }
+
+  public async createPost(fastify: FastifyInstance, args: {
+    userId: string,
+    title: string,
+    content: string
+  }) {
+    return await fastify.db.posts.create(args)
   }
 }
 

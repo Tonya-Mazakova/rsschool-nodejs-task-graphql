@@ -1,10 +1,12 @@
 import {
   GraphQLObjectType,
   GraphQLNonNull,
-  GraphQLString
+  GraphQLString,
+  GraphQLInputObjectType,
+  GraphQLID
 } from "graphql";
 
-export const postType = new GraphQLObjectType({
+const postType = new GraphQLObjectType({
   name: "Post",
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLString) },
@@ -13,3 +15,14 @@ export const postType = new GraphQLObjectType({
     userId: { type: new GraphQLNonNull(GraphQLString), format: 'uuid' },
   })
 })
+
+const CreatePostInput = new GraphQLInputObjectType({
+  name: 'CreatePostInput',
+  fields: {
+    userId: { type: new GraphQLNonNull(GraphQLID), description: "Post ID" },
+    title: { type: new GraphQLNonNull(GraphQLString), description: "Post title" },
+    content: { type: new GraphQLNonNull(GraphQLString), description: "Post description" },
+  },
+})
+
+export { postType, CreatePostInput }

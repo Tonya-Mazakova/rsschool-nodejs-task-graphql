@@ -8,7 +8,15 @@ import {
   GraphQLString,
   graphql
 } from "graphql";
-import { userType, profileType, postType, memberType } from './types';
+import {
+  userType,
+  profileType,
+  postType,
+  memberType,
+  CreateUserInput,
+  CreateProfileInput,
+  CreatePostInput
+} from './types';
 import {
   usersResolver,
   profileResolver,
@@ -28,7 +36,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
     },
     async function (request, reply) {
       const queryType = new GraphQLObjectType({
-        name: 'Query',
+        name: 'RootQueryType',
         fields: () => ({
           users: {
             type: new GraphQLList(userType),
@@ -59,7 +67,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
                 type: new GraphQLNonNull(GraphQLString),
               },
             },
-            resolve: async (_source, id) => await usersResolver.fetchUser(fastify, id)
+            resolve: async (_source, args) => await usersResolver.fetchUser(fastify, args)
           },
           profile: {
             type: profileType,
@@ -70,7 +78,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
                 type: new GraphQLNonNull(GraphQLString),
               },
             },
-            resolve: async (_source, id) => await profileResolver.fetchProfile(fastify, id),
+            resolve: async (_source, args) => await profileResolver.fetchProfile(fastify, args),
           },
           post: {
             type: postType,
@@ -81,7 +89,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
                 type: new GraphQLNonNull(GraphQLString),
               },
             },
-            resolve: async (_source, id) => await postResolver.fetchPost(fastify, id),
+            resolve: async (_source, args) => await postResolver.fetchPost(fastify, args),
           },
           memberType: {
             type: memberType,
@@ -92,23 +100,45 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
                 type: new GraphQLNonNull(GraphQLString),
               },
             },
-            resolve: async (_source, id) => await memberTypeResolver.fetchMemberType(fastify, id),
+            resolve: async (_source, args) => await memberTypeResolver.fetchMemberType(fastify, args),
           },
         }),
       });
 
-      // const mutationType = {
-      //
-      // }
+      const mutationType = new GraphQLObjectType({
+        name: 'RootMutationType',
+        fields: {
+          createUser: {
+            type: userType,
+            description: "Create a new user",
+            args: { user: { type: new GraphQLNonNull(CreateUserInput) }},
+            resolve: async (_, args) => await usersResolver.createUser(fastify, args.user),
+          },
+          createProfile: {
+            type: profileType,
+            description: "Create a new profile",
+            args: { profile: { type: new GraphQLNonNull(CreateProfileInput) }},
+            resolve: async (_, args) => await profileResolver.createProfile(fastify, args.profile),
+          },
+          createPost: {
+            type: postType,
+            description: "Create a new post",
+            args: { post: { type: new GraphQLNonNull(CreatePostInput) }},
+            resolve: async (_, args) => await postResolver.createPost(fastify, args.post),
+          }
+        }
+      })
 
       const schema = new GraphQLSchema({
         query: queryType,
-        // mutation: mutationType
+        mutation: mutationType
       })
 
       return await graphql({
         schema,
-        source: request.body.query as string
+        source: request.body.query as string,
+        variableValues: request.body.variables,
+        contextValue: fastify
       });
     }
   );
