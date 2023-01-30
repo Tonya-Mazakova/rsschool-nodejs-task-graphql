@@ -7,27 +7,27 @@ export const getQueryType = (fastify: FastifyInstance) => {
   return new GraphQLObjectType({
     name: 'RootQueryType',
     fields: () => ({
-      users: {
+      fetchUsers: {
         type: new GraphQLList(userType),
         description: "Fetch all users",
         resolve: async () => await usersResolver.fetchUsers(fastify),
       },
-      profiles: {
+      fetchProfiles: {
         type: new GraphQLList(profileType),
         description: "Fetch all profiles",
         resolve: async () => await profileResolver.fetchProfiles(fastify),
       },
-      posts: {
+      fetchPosts: {
         type: new GraphQLList(postType),
         description: "Fetch all posts",
         resolve: async () => await postResolver.fetchPosts(fastify),
       },
-      memberTypes: {
+      fetchMemberTypes: {
         type: new GraphQLList(memberType),
         description: "Fetch all member types",
         resolve: async () => await memberTypeResolver.fetchMemberTypes(fastify),
       },
-      user: {
+      fetchUser: {
         type: userType,
         description: "Fetch User by ID",
         args: {
@@ -38,7 +38,7 @@ export const getQueryType = (fastify: FastifyInstance) => {
         },
         resolve: async (_source, args) => await usersResolver.fetchUser(fastify, args)
       },
-      profile: {
+      fetchProfile: {
         type: profileType,
         description: "Fetch Profile by ID",
         args: {
@@ -49,7 +49,7 @@ export const getQueryType = (fastify: FastifyInstance) => {
         },
         resolve: async (_source, args) => await profileResolver.fetchProfile(fastify, args),
       },
-      post: {
+      fetchPost: {
         type: postType,
         description: "Fetch Post by ID",
         args: {
@@ -60,7 +60,7 @@ export const getQueryType = (fastify: FastifyInstance) => {
         },
         resolve: async (_source, args) => await postResolver.fetchPost(fastify, args),
       },
-      memberType: {
+      fetchMemberType: {
         type: memberType,
         description: "Fetch Member Type by ID",
         args: {

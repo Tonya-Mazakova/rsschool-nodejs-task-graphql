@@ -1,4 +1,6 @@
 import { FastifyInstance } from "fastify";
+import * as DataLoader from "dataloader";
+import { ProfileEntity } from "../../../utils/DB/entities/DBProfiles";
 
 class ProfileResolver {
   public async fetchProfiles(fastify: FastifyInstance) {
@@ -62,6 +64,25 @@ class ProfileResolver {
     }
 
     return fastify.db.profiles.change(id, body);
+  }
+
+  public async getProfileDataLoader(fastify: FastifyInstance) {
+    return new DataLoader(async (userIDs) => {
+      const profiles = await fastify.db.profiles.findMany();
+
+      let found
+      const result = userIDs.reduce((acc: any, currentUserID) => {
+        found = profiles?.find((profile) => profile.userId === currentUserID)
+
+        if (found) {
+          acc.push(found)
+        }
+
+        return acc
+      }, [])
+
+      return result as ProfileEntity[]
+    })
   }
 }
 

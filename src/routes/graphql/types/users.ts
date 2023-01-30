@@ -5,6 +5,8 @@ import {
   GraphQLList,
   GraphQLInputObjectType
 } from "graphql";
+import { UserEntity } from '../../../utils/DB/entities/DBUsers';
+import { profileType, postType, memberType } from "./";
 
 const userType = new GraphQLObjectType({
   name: "User",
@@ -14,6 +16,26 @@ const userType = new GraphQLObjectType({
     lastName: { type: new GraphQLNonNull(GraphQLString) },
     email: { type: new GraphQLNonNull(GraphQLString) },
     subscribedToUserIds: { type: new GraphQLList(GraphQLString) },
+    profile: {
+      type: profileType,
+      resolve: async (user: UserEntity, args: [], context) => context.profileDataLoader.load(user.id),
+    },
+    posts: {
+      type: postType,
+      resolve: async (user: UserEntity, args: [], context) => context.postDataLoader.load(user.id),
+    },
+    memberType: {
+      type: memberType,
+      resolve: async (user: UserEntity, args: [], context) => {
+        const profile = await context.profileDataLoader.load(user.id);
+
+        if (!profile) {
+          return
+        }
+
+        return context.memberTypeDataLoader.load(profile.memberTypeId);
+      },
+    },
   }),
 })
 
