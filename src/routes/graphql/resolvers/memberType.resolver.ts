@@ -16,6 +16,24 @@ class MemberTypeResolver {
 
     return memberType
   }
+
+  public async updateMemberType(fastify: FastifyInstance, args: {
+    id: string,
+    discount: number,
+    monthPostsLimit: number
+  }) {
+    const {id, ...body} = args
+
+    const memberType = await fastify.db.memberTypes.findOne({
+      key: "id", equals: id
+    })
+
+    if (!memberType) {
+      throw fastify.httpErrors.badRequest()
+    }
+
+    return await fastify.db.memberTypes.change(id, body)
+  }
 }
 
 export default new MemberTypeResolver()

@@ -24,6 +24,23 @@ class PostResolver {
   }) {
     return await fastify.db.posts.create(args)
   }
+
+  public async updatePost(fastify: FastifyInstance, args: {
+    id: string,
+    title: string,
+    content: string
+  }) {
+    const {id, ...body} = args
+
+    const post =
+      await fastify.db.posts.findOne({ key: 'id', equals: id });
+
+    if (!post) {
+      throw fastify.httpErrors.badRequest()
+    }
+
+    return fastify.db.posts.change(id, body);
+  }
 }
 
 export default new PostResolver()

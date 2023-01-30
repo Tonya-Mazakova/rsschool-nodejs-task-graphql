@@ -29,6 +29,40 @@ class ProfileResolver {
   }) {
    return await fastify.db.profiles.create(args)
   }
+
+  public async updateProfile(fastify: FastifyInstance, args: {
+    id: string,
+    avatar: string,
+    sex: string,
+    birthday: number,
+    country: string,
+    street: string,
+    city: string,
+    memberTypeId: string
+  }) {
+    const {id, ...body} = args
+
+    const profile =
+      await fastify.db.profiles.findOne({ key: 'id', equals: id });
+
+    if (!profile) {
+      throw fastify.httpErrors.badRequest()
+    }
+
+    if (args?.memberTypeId) {
+      const memberType =
+        await fastify.db.memberTypes.findOne({
+          key: "id",
+          equals: args.memberTypeId
+        })
+
+      if (!memberType) {
+        throw fastify.httpErrors.badRequest()
+      }
+    }
+
+    return fastify.db.profiles.change(id, body);
+  }
 }
 
 export default new ProfileResolver()

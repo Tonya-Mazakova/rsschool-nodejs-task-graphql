@@ -25,4 +25,13 @@ const CreatePostInput = new GraphQLInputObjectType({
   },
 })
 
-export { postType, CreatePostInput }
+const UpdatePostInput = new GraphQLInputObjectType({
+  name: 'UpdatePostInput',
+  fields: {
+    id: { type: new GraphQLNonNull(GraphQLString) },
+    title: { type: GraphQLString },
+    content: { type: GraphQLString },
+  },
+})
+
+export { postType, CreatePostInput, UpdatePostInput }
